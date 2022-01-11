@@ -25,29 +25,23 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class FirstStep {
 
-public static class MapperClass extends Mapper<LongWritable, Text, Trigram, LongWritable> {
+    public static class MapperClass extends Mapper<LongWritable, Text, Trigram, LongWritable> {
 	
-    @Override
-    public void setup(Context context)  throws IOException, InterruptedException {
-    }
+        @Override
+        public void setup(Context context)  throws IOException, InterruptedException {
+        }
 
-    @Override
-    public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
-        TrigramLine trigramLine = new TrigramLine(value);
-        context.write(new Trigram(trigramLine.getTrigram()), trigramLine.getOccurrences()); // for C0
-        context.write(new Trigram(trigramLine.getTrigram())); // for N3
-        context.write(new Trigram(trigramLine.getTrigram())); // for N2/C2
-        //context.write(new Trigram()); // for N2/C2
-        context.write(new Trigram(trigramLine.getTrigram().getW1(), "*", "*"), trigramLine.getOccurrences()); // for N1/C1
-        //context.write(new Trigram()); // for N1/C1
-        //context.write(new Trigram()); // for N1/C1
-    }
-    
-    @Override
-    public void cleanup(Context context)  throws IOException, InterruptedException {
-    }
+        @Override
+        public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
+            TrigramLine trigramLine = new TrigramLine(value);
+            //context.write();
+        }
 
-  }
+        @Override
+        public void cleanup(Context context)  throws IOException, InterruptedException {
+        }
+
+    }
  
   public static class ReducerClass extends Reducer<Text, MapWritable, Text, MapWritable> {
 
@@ -65,8 +59,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Trigram, Long
 	    }
 	 }
  
-  public static class CombinerClass 
-     extends Reducer<K2,V2,K3,V3> {
+  public static class CombinerClass extends Reducer<K2,V2,K3,V3> {
 
 	    @Override
 	    public void setup(Context context)  throws IOException, InterruptedException {
