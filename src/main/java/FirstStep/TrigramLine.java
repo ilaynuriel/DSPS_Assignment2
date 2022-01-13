@@ -75,21 +75,21 @@ public class TrigramLine implements WritableComparable<TrigramLine> {
         return this.trigram;
     }
 
-    public int getYear() { return this.year.get(); }
+    public IntWritable getYear() { return this.year; }
 
-    public String getOccurrences() { return this.occurrences.toString(); }
+    public LongWritable getOccurrences() { return this.occurrences; }
 
-    public String getPages() { return this.pages.toString(); }
+    public IntWritable getPages() { return this.pages; }
 
-    public String getBooks() { return this.books.toString(); }
+    public IntWritable getBooks() { return this.books; }
 
     @Override
     public String toString() {
         return  this.trigram.toString() + "\t" +
-                this.getYear() + "\t" +
-                this.getOccurrences() + "\t" +
-                this.getPages() + "\t" +
-                this.getBooks();
+                this.getYear().toString() + "\t" +
+                this.getOccurrences().toString() + "\t" +
+                this.getPages().toString() + "\t" +
+                this.getBooks().toString();
     }
 
     public Text toText() {
