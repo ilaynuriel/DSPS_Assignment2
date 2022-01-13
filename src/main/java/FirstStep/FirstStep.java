@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -222,17 +223,19 @@ public class FirstStep {
         job.setCombinerClass(CombinerClass.class);
         job.setReducerClass(ReducerClass.class);
 
-        //job.setMapOutputKeyClass(K2.class); TODO ?
-        //job.setMapOutputValueClass(K2.class); TODO ?
+        // Set Mapper output format:
+        job.setMapOutputKeyClass(FirstStepKey.class);
+        job.setMapOutputValueClass(FirstStepValue.class);
+
+        // Set Reducer output format:
         job.setOutputKeyClass(FirstStepKey.class);
         job.setOutputValueClass(FirstStepValue.class);
 
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
+
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
-        job.setInputFormatClass(TextInputFormat.class);
-
-        job.setOutputFormatClass(TextOutputFormat.class);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 

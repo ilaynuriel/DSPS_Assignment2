@@ -36,8 +36,7 @@ public class FirstStepKey implements WritableComparable<FirstStepKey> {
 
     @Override
     public int hashCode() {
-        return word1.hashCode(); // TODO is it ok?
-        //return super.hashCode();
+        return word1.hashCode();
     }
 
     @Override
