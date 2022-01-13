@@ -218,14 +218,14 @@ public class FirstStep {
         job.setJarByClass(FirstStep.class);
 
         job.setMapperClass(MapperClass.class);
-        //job.setPartitionerClass(PartitionerClass.class);
-        //job.setCombinerClass(CombinerClass.class);
+        job.setPartitionerClass(PartitionerClass.class);
+        job.setCombinerClass(CombinerClass.class);
         job.setReducerClass(ReducerClass.class);
 
-        //job.setMapOutputKeyClass(K2.class);
-        //job.setMapOutputValueClass(K2.class);
-        //job.setOutputKeyClass(K3.class);
-        //job.setOutputValueClass(K3.class);
+        //job.setMapOutputKeyClass(K2.class); TODO ?
+        //job.setMapOutputValueClass(K2.class); TODO ?
+        job.setOutputKeyClass(FirstStepKey.class);
+        job.setOutputValueClass(FirstStepValue.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
