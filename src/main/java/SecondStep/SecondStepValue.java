@@ -1,39 +1,35 @@
-package FirstStep;
+package SecondStep;
+
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import org.apache.hadoop.io.Text;
 
-public class FirstStepValue implements WritableComparable<FirstStepValue> {
+public class SecondStepValue implements WritableComparable<SecondStepValue> {
 
-    private final LongWritable count; // TODO explain
-    private final Trigram trigram;
+    private final LongWritable count;
 
-    public FirstStepValue(){
-        this.trigram = new Trigram();
+    public SecondStepValue(){
         this.count = new LongWritable(-1);
     }
-    public FirstStepValue(Trigram trigram, Long count){
-        this.trigram = new Trigram(trigram);
+    public SecondStepValue(Long count){
         this.count = new LongWritable(count);
     }
 
     @Override
-    public int compareTo(FirstStepValue other) {
+    public int compareTo(SecondStepValue other) {
         return this.count.compareTo(other.getCount());
     }
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        this.trigram.write(dataOutput);
         this.count.write(dataOutput);
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        this.trigram.readFields(dataInput);
         this.count.readFields(dataInput);
     }
 
@@ -41,11 +37,7 @@ public class FirstStepValue implements WritableComparable<FirstStepValue> {
         return count;
     }
 
-    public Trigram getTrigram() {
-        return trigram;
-    }
-
     public String toString(){
-        return this.trigram.toString() + "\t" + this.count.toString();
+        return this.count.toString();
     }
 }

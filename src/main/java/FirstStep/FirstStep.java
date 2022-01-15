@@ -1,18 +1,12 @@
 package FirstStep;
 
-import FirstStep.Trigram;
-import FirstStep.TrigramLine;
-
 import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.StringTokenizer;
 
+import SecondStep.SecondStepKey;
+import SecondStep.SecondStepValue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -20,7 +14,6 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
@@ -39,33 +32,41 @@ public class FirstStep {
             // For C0 calculation:
             context.write(
                     new FirstStepKey("*", "*", "*", 'c'),
-                    new FirstStepValue(trigramLine.getOccurrences().get())
+                    new FirstStepValue(new Trigram(), trigramLine.getOccurrences().get())
             );
             // For counting w1, <w1, w2> bigram, <w1, w2, w3> trigram, occurrences:
             context.write(
                     new FirstStepKey(trigramLine.getTrigram().getW1(), "*", "*", 'c'),
-                    new FirstStepValue(trigramLine.getOccurrences().get())
+                    new FirstStepValue(new Trigram(trigramLine.getTrigram().getW1(), "*", "*"), trigramLine.getOccurrences().get()) // TODO should we send the trigram? its being overwritten in the combiner
+            );
+            context.write(
+                    new FirstStepKey(trigramLine.getTrigram().getW1(), "*", "*", 'i'),
+                    new FirstStepValue(trigramLine.getTrigram(), (long)-1)
             );
             context.write(
                     new FirstStepKey(trigramLine.getTrigram().getW1(), trigramLine.getTrigram().getW2(), "*", 'c'),
-                    new FirstStepValue(trigramLine.getOccurrences().get())
+                    new FirstStepValue(new Trigram(trigramLine.getTrigram().getW1(), trigramLine.getTrigram().getW2(), "*"), trigramLine.getOccurrences().get()) // TODO should we send the trigram? its being overwritten in the combiner
+            );
+            context.write(
+                    new FirstStepKey(trigramLine.getTrigram().getW1(), trigramLine.getTrigram().getW2(), "*", 'i'),
+                    new FirstStepValue(trigramLine.getTrigram(), (long)-1)
             );
             context.write(
                     new FirstStepKey(trigramLine.getTrigram().getW1(), trigramLine.getTrigram().getW2(), trigramLine.getTrigram().getW3(), 'c'),
-                    new FirstStepValue(trigramLine.getOccurrences().get())
+                    new FirstStepValue(trigramLine.getTrigram(), trigramLine.getOccurrences().get()) // TODO should we send the trigram? its being overwritten in the combiner
             );
             // For calculating the probability in the next M-R step:
             context.write(
-                    new FirstStepKey(trigramLine.getTrigram().getW2(), "*", trigramLine.getTrigram().getW1(), 'i'),
-                    new FirstStepValue((long) -1)
+                    new FirstStepKey(trigramLine.getTrigram().getW2(), "*", "*" /*trigramLine.getTrigram().getW1()*/, 'i'), // TODO not sure we need w1
+                    new FirstStepValue(trigramLine.getTrigram(), (long) -1)
             );
             context.write(
-                    new FirstStepKey(trigramLine.getTrigram().getW2(), trigramLine.getTrigram().getW3(), trigramLine.getTrigram().getW1(), 'i'),
-                    new FirstStepValue((long) -1)
+                    new FirstStepKey(trigramLine.getTrigram().getW2(), trigramLine.getTrigram().getW3(), "*" /*trigramLine.getTrigram().getW1()*/, 'i'), // TODO not sure we need w1
+                    new FirstStepValue(trigramLine.getTrigram(), (long) -1)
             );
             context.write(
-                    new FirstStepKey(trigramLine.getTrigram().getW3(), "*", trigramLine.getTrigram().getW1(), 'i'),
-                    new FirstStepValue((long) -1)
+                    new FirstStepKey(trigramLine.getTrigram().getW3(), "*", "*" /*trigramLine.getTrigram().getW1()*/, 'i'), // TODO not sure we need w1
+                    new FirstStepValue(trigramLine.getTrigram(), (long) -1)
             );
         }
 
@@ -75,7 +76,7 @@ public class FirstStep {
 
     }
 
-    public static class ReducerClass extends Reducer<FirstStepKey, FirstStepValue, FirstStepKey, FirstStepValue> {
+    public static class ReducerClass extends Reducer<FirstStepKey, FirstStepValue, SecondStepKey, SecondStepValue> {
         char prevKeyTag;
         long word1Count;
         long word1word2Count;
@@ -107,67 +108,71 @@ public class FirstStep {
                 }
                 if (this.prevKeyTag != 'c')
                     this.prevKeyTag = 'c';
+
                 long sum = 0;
                 for (FirstStepValue value : values)
                     sum += value.getCount().get();
+
                 if (key.getWord3().charAt(0) == '*') {
                     if (key.getWord2().charAt(0) == '*') {
                         if (key.getWord1().charAt(0) == '*') {
                             context.write(
-                                    new FirstStepKey(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString(), 'c'),
-                                    new FirstStepValue(sum)
+                                    // key = <<*, *, *>, *, *, c>
+                                    new SecondStepKey(new Trigram(),'c'),
+                                    new SecondStepValue(sum)
                             );
                         } else {
-                            // emit sum - it counted all word1 instances
-                            context.write(
-                                    new FirstStepKey(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString(), 'c'),
-                                    new FirstStepValue(sum)
-                            );
                             // save sum in word1Count
                             this.word1Count = sum;
+//                            // emit sum - it counted all word1 instances
+//                            context.write(
+//                                    // key = <<word1, *, *>, *, *, c>
+//                                    new SecondStepKey(new Trigram(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString()),'c'),
+//                                    new SecondStepValue(sum)
+//                            );
                         }
                     } else {
-                        // emit sum - it counted all <word1, word2> instances
-                        context.write(
-                                new FirstStepKey(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString(), 'c'),
-                                new FirstStepValue(sum)
-                        );
                         // save sum in word1word2Count
                         this.word1word2Count = sum;
+//                        // emit sum - it counted all <word1, word2> instances
+//                        context.write(
+//                                // key = <<word1, word2, *>, *, *, c>
+//                                new SecondStepKey(new Trigram(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString()),'c'),
+//                                new SecondStepValue(sum)
+//                        );
                     }
                 } else {
                     context.write(
-                            new FirstStepKey(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString(), 'c'),
-                            new FirstStepValue(sum)
+                            // key = <<word1, word2, word3>, *, *, c>
+                            new SecondStepKey(new Trigram(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString()), 'c'),
+                            new SecondStepValue(sum)
                     );
                 }
             } else if (key.getTag().charAt(0) == 'i') {
                 if (this.prevKeyTag == 'c') {
                     this.prevKeyTag = 'i';
                 }
-                long val2emit = -1;
-                // Note: when a key is i tagged - word1, word3 should never be equal to *
-                if (key.getWord1().charAt(0) == '*' || key.getWord3().charAt(0) == '*') {
-                    // TODO: Error
-                }
-                else {
-                    if (key.getWord2().charAt(0) == '*') {
-                        // take value from word1Count
-                        val2emit = this.word1Count;
 
-                    } else {
-                        // take value from word1word2Count
-                        val2emit = this.word1word2Count;
+                // when a key is i tagged - word1, word3 should never be equal to * - Note not true because of my recent change
+//                if (key.getWord1().charAt(0) == '*' || key.getWord3().charAt(0) == '*') {
+//                    // Error
+//                } else {
+                    for (FirstStepValue value : values) {
+                        long val2emit = -1;
+                        if (key.getWord2().charAt(0) == '*') {
+                            // take value from word1Count
+                            val2emit = this.word1Count;
+                        } else {
+                            // take value from word1word2Count
+                            val2emit = this.word1word2Count;
+                        }
+                        context.write(
+                                // key = <Trigram, word1, word2(might be *), i>
+                                new SecondStepKey(value.getTrigram(), key.getWord1().toString(), key.getWord2().toString(), 'i'),
+                                new SecondStepValue(val2emit)
+                        );
                     }
-                }
-                // We dont iterate over values in this case because we should emit only one value per key - We just send
-                // new information here for the next step:
-                // We change order inside the key from <word1, word2, word3> to <word3, word1, word2>, so the reducer in
-                // the next step will get all info it need to compute the trigram <word3, word1, word2>:
-                context.write(
-                        new FirstStepKey(key.getWord3().toString(), key.getWord1().toString(), key.getWord2().toString(), 'i'),
-                        new FirstStepValue(val2emit)
-                );
+                //}
             }
         }
 
@@ -188,10 +193,17 @@ public class FirstStep {
                 long sum = 0;
                 for (FirstStepValue value : values)
                     sum += value.getCount().get();
-                context.write(key, new FirstStepValue(sum));
+                context.write(key, new FirstStepValue(new Trigram(key.getWord1().toString(), key.getWord2().toString(), key.getWord3().toString()), sum));
             } else if (key.getTag().charAt(0) == 'i') {
-                if (values.iterator().hasNext()) {
+                // if w2 and w3 aren't equal to * so we know that the Trigram in value is also the same for all values for this key.
+                if (key.getWord2().toString() != "*" && key.getWord3().toString() != "*"){
                     context.write(key, values.iterator().next());
+                }
+                else
+                {
+                    // TODO: not sure how do i combine here when w2 = "*" or w3 = "*" (or both), it depends also on the Trigram in the value...
+                    for (FirstStepValue value : values)
+                        context.write(key, value);
                 }
             }
         }
@@ -228,10 +240,10 @@ public class FirstStep {
         job.setMapOutputValueClass(FirstStepValue.class);
 
         // Set Reducer output format:
-        job.setOutputKeyClass(FirstStepKey.class);
-        job.setOutputValueClass(FirstStepValue.class);
+        job.setOutputKeyClass(SecondStepKey.class);
+        job.setOutputValueClass(SecondStepValue.class);
 
-        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class); // TextInputFormat?
         job.setOutputFormatClass(TextOutputFormat.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));

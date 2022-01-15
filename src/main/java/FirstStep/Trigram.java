@@ -34,6 +34,11 @@ public class Trigram implements WritableComparable<Trigram> {
         w2 = new Text(words[1]);
         w3 = new Text(words[2]);
     }
+    public Trigram(String word1, String word2, String word3){
+        w1 = new Text(word1);
+        w2 = new Text(word2);
+        w3 = new Text(word3);
+    }
 
     @Override
     public int compareTo(Trigram other) {
@@ -41,7 +46,7 @@ public class Trigram implements WritableComparable<Trigram> {
         if (w1_compare == 0){
             int w2_compare = this.getW2().compareTo(other.getW2());
             if (w2_compare == 0){
-                return this.getW3().compareTo(other.getW3());
+                return this.getW3().compareTo(other.getW3()); // TODO might need to delete this part
             }
             else return w2_compare;
         }
@@ -50,12 +55,16 @@ public class Trigram implements WritableComparable<Trigram> {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-
+        this.w1.write(dataOutput);
+        this.w2.write(dataOutput);
+        this.w3.write(dataOutput);
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-
+        this.w1.readFields(dataInput);
+        this.w2.readFields(dataInput);
+        this.w3.readFields(dataInput);
     }
 
     public String getW1() {

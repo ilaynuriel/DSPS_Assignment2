@@ -59,12 +59,15 @@ public class TrigramLine implements WritableComparable<TrigramLine> {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-//        trigram.write(dataOutput);
-//        occurrences.write(dataOutput);
+        this.trigram.write(dataOutput);
+        this.year.write(dataOutput);
+        this.occurrences.write(dataOutput);
+        this.pages.write(dataOutput);
+        this.books.write(dataOutput);
     }
 
     @Override
-    public void readFields(DataInput dataInput) throws IOException {  // TODO: how readFields works?
+    public void readFields(DataInput dataInput) throws IOException {
         trigram.readFields(dataInput);
         year.readFields(dataInput);
         occurrences.readFields(dataInput);
