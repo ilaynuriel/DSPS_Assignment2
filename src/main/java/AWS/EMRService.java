@@ -10,19 +10,17 @@ public class EMRService {
     private final EmrClient emr;
 
     public EMRService() {
-
         emr = EmrClient.builder()
                 .region(Region.US_EAST_1)   // Region to create/load the instance
                 .build();
     }
 
     public String runApplication(StepConfig... steps) {
-
         JobFlowInstancesConfig instances = JobFlowInstancesConfig.builder()
                 .instanceCount(5)
                 .masterInstanceType(InstanceType.M4_LARGE.toString())
                 .slaveInstanceType(InstanceType.M4_LARGE.toString())
-                .hadoopVersion("2.6.0")
+                .hadoopVersion("2.7.2")
                 .ec2KeyName("aws-ssh")
                 .keepJobFlowAliveWhenNoSteps(false)
                 .placement(PlacementType.builder().availabilityZone("us-east-1a").build())
@@ -32,7 +30,7 @@ public class EMRService {
                 .name("3Gram-MapReduce")
                 .instances(instances)
                 .steps(steps)
-                .logUri("s3n://" + Constants.BUCKET_NAME + "/log/")  // TODO
+                .logUri("s3n://dsps-hadoop-ilay-yuval/log/")
                 .serviceRole("EMR_DefaultRole")
                 .jobFlowRole("EMR_EC2_DefaultRole")
                 .releaseLabel("emr-6.0.0")  // Hadoop 2.7.2
