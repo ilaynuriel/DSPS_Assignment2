@@ -17,15 +17,15 @@ public class SecondStepKey implements WritableComparable<SecondStepKey> {
 
     public SecondStepKey() {
         this.tag = new Text("x");
-        this.word1 = new Text("*");
-        this.word2 = new Text("*");
+        this.word1 = new Text("!");
+        this.word2 = new Text("!");
         this.trigram = new Trigram();
     }
 
     public SecondStepKey(Trigram trigram, Character tag) {
         this.tag = new Text(String.valueOf(tag));
-        this.word1 = new Text("*");
-        this.word2 = new Text("*");
+        this.word1 = new Text("!");
+        this.word2 = new Text("!");
         this.trigram = new Trigram(trigram);
     }
 
@@ -52,18 +52,18 @@ public class SecondStepKey implements WritableComparable<SecondStepKey> {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        this.trigram.write(dataOutput);
-        this.word1.write(dataOutput);
-        this.word2.write(dataOutput);
-        this.tag.write(dataOutput);
+        trigram.write(dataOutput);
+        word1.write(dataOutput);
+        word2.write(dataOutput);
+        tag.write(dataOutput);
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        this.trigram.readFields(dataInput);
-        this.word1.readFields(dataInput);
-        this.word2.readFields(dataInput);
-        this.tag.readFields(dataInput);
+        trigram.readFields(dataInput);
+        word1.readFields(dataInput);
+        word2.readFields(dataInput);
+        tag.readFields(dataInput);
     }
 
     public Text getTag() {

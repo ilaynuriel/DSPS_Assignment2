@@ -8,6 +8,7 @@ import org.apache.hadoop.io.WritableComparable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class TrigramLine implements WritableComparable<TrigramLine> {
 
@@ -27,16 +28,17 @@ public class TrigramLine implements WritableComparable<TrigramLine> {
 //      The n-gram field is a space separated representation of the tuple.
 //      Example: analysis is often\t1991\t1\t1\t1
         trigram = new Trigram();
-        year = new IntWritable(-1);
-        occurrences = new LongWritable(-1);
-        pages = new IntWritable(-1);
-        books = new IntWritable(-1);
+        year = new IntWritable(0);
+        occurrences = new LongWritable(0);
+        pages = new IntWritable(0);
+        books = new IntWritable(0);
     }
 
     public TrigramLine(Text lineText){
         String[] data = lineText.toString().split("\t");
         String[] gram = data[0].split(" ");
         trigram = new Trigram(gram);
+        System.out.print("Data = " + Arrays.toString(data) + ", Trigram = " + Arrays.toString(gram));
         year = new IntWritable(Integer.parseInt(data[1]));
         occurrences = new LongWritable(Integer.parseInt(data[2]));
         pages = new IntWritable(Integer.parseInt(data[3]));
@@ -45,10 +47,10 @@ public class TrigramLine implements WritableComparable<TrigramLine> {
 
     public TrigramLine(Trigram other, IntWritable occur){
         trigram = new Trigram(other);
-        year = new IntWritable(-1);
+        year = new IntWritable(0);
         occurrences = new LongWritable(occur.get());
-        pages = new IntWritable(-1);
-        books = new IntWritable(-1);
+        pages = new IntWritable(0);
+        books = new IntWritable(0);
     }
 
     @Override

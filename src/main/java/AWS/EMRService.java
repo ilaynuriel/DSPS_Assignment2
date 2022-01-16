@@ -17,11 +17,11 @@ public class EMRService {
 
     public String runApplication(StepConfig... steps) {
         JobFlowInstancesConfig instances = JobFlowInstancesConfig.builder()
-                .instanceCount(5)
-                .masterInstanceType(InstanceType.M4_LARGE.toString())
-                .slaveInstanceType(InstanceType.M4_LARGE.toString())
-                .hadoopVersion("2.7.2")
-                .ec2KeyName("aws-ssh")
+                .instanceCount(8)
+                .masterInstanceType(InstanceType.M4_XLARGE.toString())
+                .slaveInstanceType(InstanceType.M4_XLARGE.toString())
+                .hadoopVersion("3.2.1")
+                .ec2KeyName("vockey")
                 .keepJobFlowAliveWhenNoSteps(false)
                 .placement(PlacementType.builder().availabilityZone("us-east-1a").build())
                 .build();
@@ -33,7 +33,7 @@ public class EMRService {
                 .logUri("s3n://dsps-hadoop-ilay-yuval/log/")
                 .serviceRole("EMR_DefaultRole")
                 .jobFlowRole("EMR_EC2_DefaultRole")
-                .releaseLabel("emr-6.0.0")  // Hadoop 2.7.2
+                .releaseLabel("emr-6.4.0")  // Hadoop 3.2.1
                 .build();
 
         RunJobFlowResponse response = emr.runJobFlow(request);

@@ -1,7 +1,6 @@
 package LocalApplication;
 
 import AWS.EMRService;
-import org.jets3t.service.security.AWSCredentials;
 import software.amazon.awssdk.services.emr.model.HadoopJarStepConfig;
 import software.amazon.awssdk.services.emr.model.JobFlowInstancesConfig;
 import software.amazon.awssdk.services.emr.model.RunJobFlowRequest;
@@ -14,19 +13,15 @@ public class LocalApplication {
         awsService.StorageService s3 = new awsService.StorageService("dsps-hadoop-ilay-yuval");
 
         // 1. Upload jars to S3
-        s3.uploadFile("target/FirstStep/FirstStep.jar", "FirstStep.jar");
-        s3.uploadFile("target/SecondStep/SecondStep.jar", "SecondStep.jar");
+        s3.uploadFile("target/FirstStep.jar", "FirstStep.jar");
+        s3.uploadFile("target/SecondStep.jar", "SecondStep.jar");
         //s3.uploadFile("target/ThirdStep/ThirdStep.jar", "ThirdStep.jar");
-
-        // TODO: whats the purpose of the next 2 lines?
-        //AWSCredentials credentials = new PropertiesCredentials(...);
-        //AmazonElasticMapReduce mapReduce = new AmazonElasticMapReduceClient(credentials);
 
         // 2. Create Config for FirstStep
         HadoopJarStepConfig hadoopJarStep1 = HadoopJarStepConfig.builder()
                 .jar("s3n://dsps-hadoop-ilay-yuval/FirstStep.jar")
                 .mainClass("FirstStep")
-                .args("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data")
+                .args("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data", "s3://dsps-hadoop-ilay-yuval/output_step_1")
                 .build();
 
         StepConfig stepConfig1 = StepConfig.builder()
@@ -39,7 +34,7 @@ public class LocalApplication {
         HadoopJarStepConfig hadoopJarStep2 = HadoopJarStepConfig.builder()
                 .jar("s3n://dsps-hadoop-ilay-yuval/SecondStep.jar")
                 .mainClass("SecondStep")
-                .args("") // TODO
+                .args("s3://dsps-hadoop-ilay-yuval/output_step_1", "s3://dsps-hadoop-ilay-yuval/output_step_2") // TODO
                 .build();
 
         StepConfig stepConfig2 = StepConfig.builder()
@@ -52,7 +47,7 @@ public class LocalApplication {
 //        HadoopJarStepConfig hadoopJarStep3 = HadoopJarStepConfig.builder()
 //                .jar("s3n://dsps-hadoop-ilay-yuval/ThirdStep.jar")
 //                .mainClass("ThirdStep")
-//                .args("") // TODO
+//                .args("s3://dsps-hadoop-ilay-yuval/output_step_2", "s3://dsps-hadoop-ilay-yuval/output_step_3") // TODO
 //                .build();
 //
 //        StepConfig stepConfig3 = StepConfig.builder()

@@ -14,6 +14,12 @@ public class FirstStepKey implements WritableComparable<FirstStepKey> {
     private final Text word3;
     private final Text tag;
 
+    public FirstStepKey(){
+        this.tag = new Text();
+        this.word1 = new Text();
+        this.word2 = new Text();
+        this.word3 = new Text();
+    }
     public FirstStepKey(Text word, Text tag){
         this.tag = tag;
         this.word1 = word;
@@ -23,8 +29,8 @@ public class FirstStepKey implements WritableComparable<FirstStepKey> {
     public FirstStepKey(String word1, Character tag){
         this.tag = new Text(String.valueOf(tag));
         this.word1 = new Text(word1);
-        this.word2 = new Text("*");
-        this.word3 = new Text("*");
+        this.word2 = new Text("!");
+        this.word3 = new Text("!");
     }
     public FirstStepKey(String word1, String word2, String word3, Character tag){
         this.tag = new Text(String.valueOf(tag));
@@ -55,18 +61,18 @@ public class FirstStepKey implements WritableComparable<FirstStepKey> {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        this.word1.write(dataOutput);
-        this.word2.write(dataOutput);
-        this.word3.write(dataOutput);
-        this.tag.write(dataOutput);
+        word1.write(dataOutput);
+        word2.write(dataOutput);
+        word3.write(dataOutput);
+        tag.write(dataOutput);
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        this.word1.readFields(dataInput);
-        this.word2.readFields(dataInput);
-        this.word3.readFields(dataInput);
-        this.tag.readFields(dataInput);
+        word1.readFields(dataInput);
+        word2.readFields(dataInput);
+        word3.readFields(dataInput);
+        tag.readFields(dataInput);
     }
 
     public Text getTag() {

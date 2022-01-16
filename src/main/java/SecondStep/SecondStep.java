@@ -33,9 +33,10 @@ public class SecondStep {
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            // TODO: need to determine in FirstStep how do we write the output to the file and parse it accordingly here
+            System.out.print("Key = " + key.toString() + ", Value = " + value.toString());
             String[] data = value.toString().split("\t");
             String[] gram = data[0].split(" ");
+            System.out.print("Data = " + Arrays.toString(data) + ", Trigram = " + Arrays.toString(gram));
             SecondStepKey secondStepKey = new SecondStepKey(new Trigram(gram), data[1], data[2], data[3].charAt(0));
             SecondStepValue secondStepValue = new SecondStepValue(Long.parseLong(data[4]));
             // need to handle sending the C0 value to all reducers
@@ -43,10 +44,13 @@ public class SecondStep {
                 int numOfReducers = context.getNumReduceTasks();
                 for (int i = 0; i < numOfReducers; i++) {
                     context.write(
-                            new SecondStepKey(secondStepKey.getTrigram(), String.valueOf(i), "*", 'c'),
+                            new SecondStepKey(secondStepKey.getTrigram(), String.valueOf(i), "!", 'c'),
                             new SecondStepValue(secondStepValue.getCount().get())
                     );
                 }
+            }
+            else {
+                context.write(secondStepKey, secondStepValue);
             }
         }
 
@@ -77,7 +81,7 @@ public class SecondStep {
                 wordsCount.clear();
                 pairsCount.clear();
                 for (SecondStepValue value : values) {
-                    if (key.getWord2().toString().equals("*")) // this is information regarding 1 words and not pair
+                    if (key.getWord2().toString().equals("!")) // this is information regarding 1 words and not pair
                         wordsCount.put(key.getWord2().toString(), values.iterator().next().getCount().get()); // the count of word1
                     else
                         pairsCount.put(key.getWord1().toString() + " " + key.getWord2().toString(), values.iterator().next().getCount().get());
@@ -98,7 +102,7 @@ public class SecondStep {
                                     (1 - k3) * k2 * word2word3Count / word2Count +
                                     (1 - k3) * (1 - k2) * word3Count / totalWordCount;
                     context.write(
-                            // key = <Trigram, word1, word2(might be *), i>
+                            // key = <Trigram, word1, word2(might be !), i>
                             new SecondStepOutputKey(key.getTrigram(), probability),
                             new SecondStepOutputValue(probability)
                     );
@@ -176,8 +180,8 @@ public class SecondStep {
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileInputFormat.addInputPath(job, new Path(args[1]));
+        FileOutputFormat.setOutputPath(job, new Path(args[2]));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 

@@ -15,9 +15,9 @@ public class Trigram implements WritableComparable<Trigram> {
     private final Text w3;
 
     public Trigram() {
-        w1 = new Text("*");
-        w2 = new Text("*");
-        w3 = new Text("*");
+        w1 = new Text("!");
+        w2 = new Text("!");
+        w3 = new Text("!");
     }
     public Trigram(Text word1, Text word2, Text word3){
         w1 = new Text(word1);
